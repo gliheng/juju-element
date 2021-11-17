@@ -1,0 +1,8 @@
+* data-table
+** Cell merging
+** Events, set display widget
+** Cell Styling
+** Resizable rows and columns
+** Virtual scrolling
+** Freeze rows and columns
+** data lazy loading

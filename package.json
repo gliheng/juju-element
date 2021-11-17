@@ -1,0 +1,28 @@
+{
+  "name": "juju-element",
+  "version": "0.0.0",
+  "main": "dist/juju-element.es.js",
+  "exports": {
+    ".": "./dist/juju-element.es.js"
+  },
+  "types": "types/juju-element.d.ts",
+  "files": [
+    "dist",
+    "types"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build"
+  },
+  "dependencies": {
+    "@ctrl/tinycolor": "^3.4.0",
+    "ionicons": "^5.5.3",
+    "lit": "^2.0.2",
+    "mitt": "^3.0.0"
+  },
+  "devDependencies": {
+    "sass": "^1.43.4",
+    "typescript": "^4.3.2",
+    "vite": "^2.5.6"
+  }
+}
