@@ -1,116 +1,81 @@
-import { LitElement, html, PropertyValues } from "lit";
+import { LitElement, html } from "lit";
 import { customElement, property } from "lit/decorators.js";
-import { createRef, ref, Ref } from "lit/directives/ref.js";
-import Router, { SubApp, Route } from "./router";
-import { routeConfig, nav } from "../routes";
+import Router, { Route } from "./router";
 
-
-const moduleCache: Map<string, SubApp> = new Map();
-
-async function resolveModule(name: string): Promise<SubApp> {
-  let module = moduleCache.get(name);
-  if (module) return module;
-
-  let route = routeConfig.routes.filter((r) => r.name == name)[0];
-  if (!route) throw `No route with name ${name} found`;
-  module = await route.component();
-  moduleCache.set(name, module);
-  return module;
-}
-
-async function unmountRoute(dom: Element, route: Route) {
-  let m = await resolveModule(route.name);
-  m.unmount(dom);
-}
-
-async function mountRoute(dom: Element, route: Route) {
-  let module = await resolveModule(route.name);
-  module.mount(dom, route);
-}
+export { Router };
 
 @customElement("j-router-view")
 class RouterView extends LitElement {
-  routerViewRef: Ref<HTMLElement> = createRef();
+  router?: Router;
 
-  @property({ type: Object })
-  route?: Route;
+  @property({
+    type: Boolean,
+  })
+  useShadow = true;
 
   createRenderRoot() {
+    if (this.useShadow) {
+      return super.createRenderRoot();
+    }
     return this;
   }
 
-  async update(changed: PropertyValues) {
-    super.update(changed);
-    if (!changed.has("route")) return;
-    let oldRoute = changed.get("route") as Route;
-    let root = this.routerViewRef.value;
-    if (root) {
-      if (oldRoute) {
-        await unmountRoute(root, oldRoute);
-      }
-      if (this.route) {
-        await mountRoute(root, this.route);
-      }
+  onRouterChange = async ([route, oldRoute]: [Route, Route?]) => {
+    if (oldRoute) {
+      await this.router!.unmountRoute(this.renderRoot, oldRoute);
+    }
+    if (route) {
+      await this.router!.mountRoute(this.renderRoot, route);
     }
   }
 
-  // Is this required? Since update event will also fire before firstUpdated event
-  // firstUpdated() {
-  //   if (this.name) {
-  //     mountRoute(this.routerViewRef.value!, this.name);
-  //   }
-  // }
+  firstUpdated() {
+    this.router!.mountRoute(this.renderRoot, this.router!.currentRoute!);
+  }
 
-  render() {
-    return html`<div ${ref(this.routerViewRef)}></div>`;
+  connectedCallback() {
+    super.connectedCallback();
+    let routerNode = this.closest('j-router-app');
+    if (!routerNode || !routerNode.router) {
+      throw 'router-view need a router-app ancestor node';
+    }
+    this.router = routerNode.router;
+    this.router.on('change', this.onRouterChange);
+  }
+
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    this.router!.off('change', this.onRouterChange);
   }
 }
 
 @customElement("j-router-app")
 export class RouterApp extends LitElement {
-  public router: Router;
+  @property({
+    attribute: false,
+    type: Object,
+  })
+  router?: Router;
 
-  constructor() {
-    super();
-    this.router = new Router(routeConfig);
-    this.router.on<Route>("change", this.onRouteChange);
-    this.currentRoute = this.router.currentRoute;
-  }
-
-  private onRouteChange = (route?: Route) => {
-    if (route) {
-      this.currentRoute = route;
-    }
-  };
+  @property({
+    type: Boolean,
+  })
+  useShadow = true;
 
   createRenderRoot() {
+    if (this.useShadow) {
+      return super.createRenderRoot();
+    }
     return this;
   }
 
-  @property({ attribute: false, type: Object })
-  currentRoute;
-
-  private navigate(name: string) {
-    this.router.push(name);
+  navigate(name: string) {
+    this.router?.push(name);
   }
 
   render() {
-    let menu;
-    if (nav.length) {
-      menu = html`<div class="menu">
-        ${nav.map((page) => {
-          return html`<button
-            @click=${this.navigate.bind(this, page)}
-            part="button"
-          >
-            ${page}
-          </button>`;
-        })}
-      </div>`;
-    }
     return html`
-      ${menu}
-      <j-router-view .route=${this.currentRoute}></j-router-view>
+      <slot></slot>
     `;
   }
 }
