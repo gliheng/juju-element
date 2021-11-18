@@ -1,13 +1,70 @@
-import { LitElement, html } from "lit";
-import { customElement, property } from "lit/decorators.js";
+import { LitElement, html, css } from "lit";
+import { customElement, property, state } from "lit/decorators.js";
 import Router, { Route } from "./router";
 
 export { Router };
 
-@customElement("j-router-view")
-class RouterView extends LitElement {
+class RouterAwareElement extends LitElement {
   router?: Router;
 
+  onRouterChange = async ([route, _]: [Route, Route?]) => {}
+  
+  connectedCallback() {
+    super.connectedCallback();
+    let routerNode = this.closest('j-router-app');
+    if (!routerNode || !routerNode.router) {
+      throw 'router-view need a router-app ancestor node';
+    }
+    let router = routerNode.router;
+    router.on('change', this.onRouterChange);
+    this.router = router;
+  }
+
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    this.router!.off('change', this.onRouterChange);
+  }
+}
+
+@customElement("j-router-link")
+class RouterLink extends RouterAwareElement {
+  static styles = css`
+    a[data-active] {
+      color: var(--primary-color);
+    }
+  `;
+
+  onRouterChange = async ([route, _]: [Route, Route?]) => {
+    this.active = this.name == route.name;
+  }
+
+  private onClick(evt: PointerEvent) {
+    if (!this.name) throw 'router-link muse have a name';
+    this.router?.push(this.name);
+    evt.preventDefault();
+  }
+
+  @property()
+  name?: string;
+
+  @state()
+  private active = false;
+
+  render() {
+    let url = '';
+    if (this.name) {
+      let route = this.router?.getRoute(this.name);
+      url = route?.path || '';
+    }
+    return html`
+    <a ?data-active=${this.active} @click=${this.onClick} href=${url}>
+      <slot></slot>
+    </a>`;
+  }
+}
+
+@customElement("j-router-view")
+class RouterView extends RouterAwareElement {
   @property({
     type: Boolean,
   })
@@ -31,21 +88,6 @@ class RouterView extends LitElement {
 
   firstUpdated() {
     this.router!.mountRoute(this.renderRoot, this.router!.currentRoute!);
-  }
-
-  connectedCallback() {
-    super.connectedCallback();
-    let routerNode = this.closest('j-router-app');
-    if (!routerNode || !routerNode.router) {
-      throw 'router-view need a router-app ancestor node';
-    }
-    this.router = routerNode.router;
-    this.router.on('change', this.onRouterChange);
-  }
-
-  disconnectedCallback() {
-    super.disconnectedCallback();
-    this.router!.off('change', this.onRouterChange);
   }
 }
 
@@ -84,5 +126,6 @@ declare global {
   interface HTMLElementTagNameMap {
     "j-router-app": RouterApp;
     "j-router-view": RouterView;
+    "j-router-link": RouterLink;
   }
 }

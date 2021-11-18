@@ -1,7 +1,13 @@
 import { Router } from '@/Router';
+import ExampleIndex from './pages/index';
 
 export default new Router({
   routes: [
+    {
+      name: 'index',
+      path: '/',
+      component: ExampleIndex,
+    },
     {
       name: 'button',
       path: '/button',

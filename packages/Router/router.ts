@@ -31,7 +31,7 @@ export default class Router extends Emitter {
     this._changeRoute(currentRoute);
   };
 
-  private getNotFoundRoute(from?: string) {
+  public getNotFoundRoute(from?: string) {
     let { notFound } = this._routerConfig;
     if (typeof notFound == 'string') {
       return notFound;
@@ -41,7 +41,7 @@ export default class Router extends Emitter {
     throw 'Not found url is not set'
   }
 
-  private getRoute(name: string): Route | undefined {
+  public getRoute(name: string): Route | undefined {
     let route = this._routerConfig.routes.find((r) => r.name == name);
     if (route) {
       return route;
@@ -56,7 +56,7 @@ export default class Router extends Emitter {
     return undefined;
   }
 
-  private getRouteByPath(path: string): Route | undefined {
+  public getRouteByPath(path: string): Route | undefined {
     let route = this._routerConfig.routes.find((r) => {
       return path.startsWith(r.path) && (
         path.length == r.path.length || path[r.path.length] == '/'
@@ -105,10 +105,16 @@ export default class Router extends Emitter {
   moduleCache: Map<string, ExternalModule> = new Map();
 
   private async resolveModule(name: string): Promise<ExternalModule> {
+    let route = this._routerConfig.routes.filter((r) => r.name == name)[0];
+    if (route.component.prototype instanceof HTMLElement) {
+      return {
+        default: route.component,
+      };
+    }
+  
     let m = this.moduleCache.get(name);
     if (m) return m;
 
-    let route = this._routerConfig.routes.filter((r) => r.name == name)[0];
     if (!route) throw `No route with name ${name} found`;
     m = await route.component();
     this.moduleCache.set(name, m);
@@ -117,7 +123,7 @@ export default class Router extends Emitter {
 
   public async unmountRoute(dom: HTMLElement | ShadowRoot, route: Route) {
     let m = await this.resolveModule(route.name);
-    if (typeof m.default == 'function') {
+    if (m.default) {
       if (dom.firstElementChild) {
         dom.removeChild(dom.firstElementChild);
       }
@@ -128,7 +134,7 @@ export default class Router extends Emitter {
   
   public async mountRoute(dom: HTMLElement | ShadowRoot, route: Route) {
     let m = await this.resolveModule(route.name);
-    if (m.default && typeof m.default == 'function') {
+    if (m.default) {
       dom.appendChild(new m.default());
     } else {
       m.mount(dom, route);
