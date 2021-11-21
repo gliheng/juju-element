@@ -105,25 +105,28 @@ export default class Router extends Emitter {
   moduleCache: Map<string, ExternalModule> = new Map();
 
   private async resolveModule(name: string): Promise<ExternalModule> {
-    let route = this._routerConfig.routes.filter((r) => r.name == name)[0];
-    if (route.component.prototype instanceof HTMLElement) {
-      return {
-        default: route.component,
-      };
-    }
-  
-    let m = this.moduleCache.get(name);
+    
+    let m: any = this.moduleCache.get(name);
     if (m) return m;
-
+    
+    let route = this._routerConfig.routes.filter((r) => r.name == name)[0];
     if (!route) throw `No route with name ${name} found`;
-    m = await route.component();
+    if (typeof route.component == 'function' && !(route.component.prototype instanceof HTMLElement)) {
+      m = await route.component();
+      if (m) {
+        m = m.default || m;
+      }
+    } else {
+      m = route.component;
+    }
+    if (!m) throw `Cannot resolve module ${name}`;
     this.moduleCache.set(name, m);
     return m;
   }
 
   public async unmountRoute(dom: HTMLElement | ShadowRoot, route: Route) {
     let m = await this.resolveModule(route.name);
-    if (m.default) {
+    if (typeof m == 'function') {
       if (dom.firstElementChild) {
         dom.removeChild(dom.firstElementChild);
       }
@@ -134,23 +137,23 @@ export default class Router extends Emitter {
   
   public async mountRoute(dom: HTMLElement | ShadowRoot, route: Route) {
     let m = await this.resolveModule(route.name);
-    if (m.default) {
-      dom.appendChild(new m.default());
+    if (typeof m == 'function') {
+      dom.appendChild(new m());
     } else {
       m.mount(dom, route);
     }
   }
 }
 
+type ElementConstructor = new() => HTMLElement;
+
 export type ExternalModule = {
   mount: (root: HTMLElement | ShadowRoot, route: Route) => void;
   unmount: (root: HTMLElement | ShadowRoot) => void;
-} | {
-  default: {new(): HTMLElement},
-}
+} | ElementConstructor;
 
 export interface Route {
   name: string;
   path: string;
-  component: () => Promise<ExternalModule>;
+  component: () => Promise<ExternalModule> | ExternalModule;
 }
