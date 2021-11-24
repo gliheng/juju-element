@@ -1,10 +1,7 @@
 {
   "name": "juju-element",
   "version": "0.0.0",
-  "main": "dist/juju-element.es.js",
-  "exports": {
-    ".": "./dist/juju-element.es.js"
-  },
+  "module": "dist/juju-element.es.js",
   "types": "types/juju-element.d.ts",
   "files": [
     "dist",

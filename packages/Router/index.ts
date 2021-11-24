@@ -16,12 +16,14 @@ class RouterAwareElement extends LitElement {
       throw 'router-view need a router-app ancestor node';
     }
     let router = routerNode.router;
+    // @ts-ignore
     router.on('change', this.onRouterChange);
     this.router = router;
   }
 
   disconnectedCallback() {
     super.disconnectedCallback();
+    // @ts-ignore
     this.router!.off('change', this.onRouterChange);
   }
 }
