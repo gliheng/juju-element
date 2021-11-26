@@ -21,7 +21,7 @@ export default new Router({
     {
       name: 'table',
       path: '/table',
-      component: () => import('./pages/ExampleSvgIcon'),
+      component: () => import('./pages/ExampleTable'),
     },
     {
       name: 'tabs',

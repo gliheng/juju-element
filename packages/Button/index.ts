@@ -9,7 +9,7 @@ export default class Button extends RippleElement {
     RippleElement.styles,
     css`
     :host {
-      display: inline-block;
+      display: inline-flex;
     }
 
     button {

@@ -29,7 +29,7 @@ class RouterAwareElement extends LitElement {
 }
 
 @customElement("j-router-link")
-class RouterLink extends RouterAwareElement {
+export class RouterLink extends RouterAwareElement {
   static styles = css`
     a[data-active] {
       color: var(--primary-color);
@@ -66,7 +66,7 @@ class RouterLink extends RouterAwareElement {
 }
 
 @customElement("j-router-view")
-class RouterView extends RouterAwareElement {
+export class RouterView extends RouterAwareElement {
   @property({
     type: Boolean,
   })

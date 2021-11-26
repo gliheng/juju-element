@@ -7,7 +7,23 @@ export class TableCellElement extends LitElement {
   static styles = css`
   :host {
     position: absolute;
-  }`; 
+  }
+  :host(.last-row) .j-cell {
+    border-bottom: none;
+  }
+  :host(.last-col) .j-cell {
+    border-right: none;
+  }
+  .j-cell {
+    padding: 10px;
+    width: 100%;
+    height: 100%;
+    border-bottom: var(--table-border);
+    border-right: var(--table-border);
+    position: relative;
+    box-sizing: border-box;
+  }
+  `; 
 
   @property({ attribute: false })
   x = 0;
@@ -31,13 +47,6 @@ export class TableCellElement extends LitElement {
         height: ${this.height}px;
       }
     </style>
-    <div style=${styleMap({
-      width: '100%',
-      height: '100%',
-      borderBottom: 'var(--default-border)',
-      borderRight: 'var(--default-border)',
-      position: 'relative',
-      boxSizing: 'border-box',
-    })}><slot></slot></div>`;
+    <div class="j-cell"><slot></slot></div>`;
   }
 }
