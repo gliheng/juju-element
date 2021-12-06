@@ -31,8 +31,13 @@ class RouterAwareElement extends LitElement {
 @customElement("j-router-link")
 export class RouterLink extends RouterAwareElement {
   static styles = css`
+    a {
+      text-decoration: none;
+      --router-link-color: transparent;
+    }
     a[data-active] {
       color: var(--primary-color);
+      --router-link-active-color: var(--primary-color);
     }
   `;
 
