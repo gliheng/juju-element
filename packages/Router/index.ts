@@ -36,6 +36,13 @@ export class RouterLink extends RouterAwareElement {
     }
   `;
 
+  connectedCallback() {
+    super.connectedCallback();
+    if (this.router?.currentRoute?.name == this.name) {
+      this.active = true;
+    }
+  }
+
   onRouterChange = async ([route, _]: [Route, Route?]) => {
     this.active = this.name == route.name;
   }

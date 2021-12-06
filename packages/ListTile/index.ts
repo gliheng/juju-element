@@ -21,6 +21,11 @@ export default class ListTile extends LitElement {
   })
   items: {label?: string, icon?: string, key?: string}[] = [];
 
+  select(i: number) {
+    this.selectedIdx = i;
+    this.requestUpdate();
+  }
+
   private onClick(evt: PointerEvent) {
     let item: HTMLElement | null = (evt.target as HTMLElement).closest('j-list-tile-item');
     if (item) {

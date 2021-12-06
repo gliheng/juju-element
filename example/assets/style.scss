@@ -1,2 +1,9 @@
 @import "theme";
 @import "shadow";
+
+html {
+  font-family: Avenir, Ubuntu, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+  

@@ -28,6 +28,11 @@ export default new Router({
       path: '/tabs',
       component: () => import('./pages/ExampleTabs'),
     },
+    {
+      name: 'list-tile',
+      path: '/list-tile',
+      component: () => import('./pages/ExampleListTile'),
+    },
   ],
   notFound: 'button',
 });

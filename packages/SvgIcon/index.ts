@@ -1,11 +1,36 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { unsafeSVG } from 'lit/directives/unsafe-svg.js';
-import * as icons from 'ionicons/icons';
 import { camelCase } from '../utils/string';
+
+async function fetchIcons() {
+  let icons = await import('ionicons/icons');
+  return icons as unknown as Record<string, string>;
+}
+
+let loadingIcons: Promise<Record<string, string>>;
+let icons: Record<string, string>;
 
 @customElement('j-svg-icon')
 export default class SvgIcon extends LitElement {
+  constructor() {
+    super();
+    if (!loadingIcons) {
+      let promise = fetchIcons();
+      loadingIcons = promise;
+      promise.then(_icons => {
+        icons = _icons;
+      });
+    }
+  }
+
+  connectedCallback() {
+    super.connectedCallback();
+    if (!icons) {
+      loadingIcons.then(() => this.requestUpdate());
+    }
+  }
+
   static styles = css`
     :host {
       display: inline-block;
@@ -65,9 +90,17 @@ export default class SvgIcon extends LitElement {
 
   @property()
   size = 'md';
-
+  
+  private getIconSvg(): string {
+    if (!this.name || !icons) return '';
+    let str = (icons as Record<string, string>)[camelCase(this.name)];
+    if (!str) return '';
+    let start = str.indexOf('<');
+    return str.substring(start).replace(/<title>.*?<\/title>/, '');
+  }
+  
   render() {
-    const svg = this.svg || getIconSvg(this.name);
+    const svg = this.svg || this.getIconSvg();
     return html`
       <i class="j-icon" data-size=${this.size}>
         <i class="j-icon-svg">
@@ -80,14 +113,6 @@ export default class SvgIcon extends LitElement {
       </i>
     `;
   }
-}
-
-function getIconSvg(name?: string): string {
-  if (!name) return '';
-  let str = (icons as Record<string, string>)[camelCase(name)];
-  if (!str) return '';
-  let start = str.indexOf('<');
-  return str.substring(start).replace(/<title>.*?<\/title>/, '');
 }
 
 declare global {

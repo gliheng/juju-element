@@ -13,7 +13,13 @@ export default defineConfig({
       formats: ['es']
     },
     rollupOptions: {
-      external: /^(lit|ionicon)/
+      external: /^(lit)/,
+      output: {
+        manualChunks: {
+          icons: ['ionicons/icons']
+        },
+        chunkFileNames: "[name]-[hash].js",
+      }
     }
   }
 })
